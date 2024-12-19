@@ -5,7 +5,21 @@ class FirebaseService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Authentication methods remain unchanged
+  // Authentication methods
+  Future<User?> signupWithEmailandPassword(
+      String email, String password) async {
+    try {
+      UserCredential userCredential =
+          await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      return userCredential.user;
+    } catch (e) {
+      print('Error signing up: $e');
+      return null;
+    }
+  }
 
   // Cloud Firestore methods with auto-increment ID
   Future<int> _getNextId() async {
@@ -26,29 +40,31 @@ class FirebaseService {
     await idDoc.update({'currentId': newId});
   }
 
-  Future<void> addDocumentWithAutoIncrementId(
-      String collectionName, Map<String, dynamic> data) async {
+  Future<void> addUserDocumentWithAutoIncrementId(
+      String userId, Map<String, dynamic> data) async {
     try {
       int newId = await _getNextId();
       data['id'] = newId;
 
-      await _firestore
-          .collection(collectionName)
-          .doc(newId.toString())
-          .set(data);
+      await _firestore.collection('users').doc(userId).set(data);
       await _updateId(newId);
 
-      print('Document added with ID: $newId');
+      print('User document added with auto-increment ID: $newId');
     } catch (e) {
-      print('Error adding document: $e');
+      print('Error adding user document: $e');
     }
   }
 
-  Future<Map<String, dynamic>?> getDocument(
-      String collectionName, String documentId) async {
+  // Public method to get the next ID
+  Future<int> getNextUserId() async {
+    return await _getNextId();
+  }
+
+  // Method to get a specific document by ID
+  Future<Map<String, dynamic>?> getUserDocument(String documentId) async {
     try {
       DocumentSnapshot doc =
-          await _firestore.collection(collectionName).doc(documentId).get();
+          await _firestore.collection('users').doc(documentId).get();
       if (doc.exists) {
         return doc.data() as Map<String, dynamic>?;
       } else {
@@ -58,15 +74,6 @@ class FirebaseService {
     } catch (e) {
       print('Error getting document: $e');
       return null;
-    }
-  }
-
-  Future<void> deleteDocument(String collectionName, String documentId) async {
-    try {
-      await _firestore.collection(collectionName).doc(documentId).delete();
-      print('Document deleted successfully');
-    } catch (e) {
-      print('Error deleting document: $e');
     }
   }
 }
