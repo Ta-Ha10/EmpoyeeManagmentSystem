@@ -1,4 +1,4 @@
-import 'package:ems/Pages/LoginPage.dart'; // Ensure you have a LoginPage to navigate to
+import 'package:ems/Pages/LoginPage.dart';
 import 'package:ems/user_auth/firebase_auth_implementation/firebase_auth_services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -20,6 +20,7 @@ class _SignUpState extends State<SignUp> {
   final FirebaseService _firebaseService = FirebaseService();
   Map<String, dynamic>? _userData;
   int? _userId;
+  bool _isPasswordVisible = false;
 
   @override
   void dispose() {
@@ -39,10 +40,7 @@ class _SignUpState extends State<SignUp> {
     String password = _passwordController.text.trim();
 
     try {
-      // Generate an auto-increment ID for preview
       int userId = await _firebaseService.getNextUserId();
-
-      // Store data in _userData to preview
       setState(() {
         _userData = {
           'id': userId,
@@ -71,7 +69,6 @@ class _SignUpState extends State<SignUp> {
       User? user = await _auth.signupWithEmailandPassword(email, password);
 
       if (user != null) {
-        // Save user information in Firestore
         await _firebaseService.addUserDocumentWithAutoIncrementId(
             user.uid, _userData!);
 
@@ -80,9 +77,9 @@ class _SignUpState extends State<SignUp> {
         );
         Navigator.of(context).pushReplacement(MaterialPageRoute(
           builder: (BuildContext context) {
-            return LoginPage(); // Navigate to LoginPage
+            return LoginPage();
           },
-        )); // Navigate to LoginPage
+        ));
       } else {
         throw Exception('User creation failed');
       }
@@ -98,7 +95,7 @@ class _SignUpState extends State<SignUp> {
     return Scaffold(
       appBar: AppBar(
         title: const Center(child: Text('Sign UP')),
-        backgroundColor: const Color(0xFFB3A4F6), // Updated color for AppBar
+        backgroundColor: const Color(0xFFB3A4F6),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -118,7 +115,7 @@ class _SignUpState extends State<SignUp> {
               const SizedBox(height: 20),
               Container(
                 decoration: BoxDecoration(
-                  color: const Color(0xFFD9D9D9), // Background color for box
+                  color: const Color(0xFFD9D9D9),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 padding: const EdgeInsets.all(16.0),
@@ -129,10 +126,10 @@ class _SignUpState extends State<SignUp> {
                       decoration: InputDecoration(
                         labelText: 'Name',
                         filled: true,
-                        fillColor: const Color(
-                            0xFF7E96D3), // Updated color for TextField
+                        fillColor: const Color(0xFF7E96D3),
                         border: InputBorder.none,
                       ),
+                      keyboardType: TextInputType.name,
                     ),
                     const SizedBox(height: 10),
                     TextField(
@@ -140,10 +137,10 @@ class _SignUpState extends State<SignUp> {
                       decoration: InputDecoration(
                         labelText: 'Phone',
                         filled: true,
-                        fillColor: const Color(
-                            0xFF7E96D3), // Updated color for TextField
+                        fillColor: const Color(0xFF7E96D3),
                         border: InputBorder.none,
                       ),
+                      keyboardType: TextInputType.phone,
                     ),
                     const SizedBox(height: 10),
                     TextField(
@@ -151,10 +148,10 @@ class _SignUpState extends State<SignUp> {
                       decoration: InputDecoration(
                         labelText: 'SSN',
                         filled: true,
-                        fillColor: const Color(
-                            0xFF7E96D3), // Updated color for TextField
+                        fillColor: const Color(0xFF7E96D3),
                         border: InputBorder.none,
                       ),
+                      keyboardType: TextInputType.number,
                     ),
                     const SizedBox(height: 10),
                     TextField(
@@ -162,10 +159,10 @@ class _SignUpState extends State<SignUp> {
                       decoration: InputDecoration(
                         labelText: 'Email',
                         filled: true,
-                        fillColor: const Color(
-                            0xFF7E96D3), // Updated color for TextField
+                        fillColor: const Color(0xFF7E96D3),
                         border: InputBorder.none,
                       ),
+                      keyboardType: TextInputType.emailAddress,
                     ),
                     const SizedBox(height: 10),
                     TextField(
@@ -173,23 +170,32 @@ class _SignUpState extends State<SignUp> {
                       decoration: InputDecoration(
                         labelText: 'Password',
                         filled: true,
-                        fillColor: const Color(
-                            0xFF7E96D3), // Updated color for TextField
+                        fillColor: const Color(0xFF7E96D3),
                         border: InputBorder.none,
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _isPasswordVisible
+                                ? Icons.visibility
+                                : Icons.visibility_off,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _isPasswordVisible = !_isPasswordVisible;
+                            });
+                          },
+                        ),
                       ),
-                      obscureText: true, // For password masking
+                      obscureText: !_isPasswordVisible,
                     ),
                     const SizedBox(height: 20),
                     ElevatedButton(
                       onPressed: _previewUser,
                       child: const Text(
                         'Preview',
-                        style: TextStyle(
-                            color: Colors.white), // Text color set to white
+                        style: TextStyle(color: Colors.white),
                       ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                            const Color(0xFF654E91), // Updated color for Button
+                        backgroundColor: const Color(0xFF654E91),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20),
                         ),
@@ -209,13 +215,10 @@ class _SignUpState extends State<SignUp> {
                             onPressed: _signup,
                             child: const Text(
                               'Confirm & Sign Up',
-                              style: TextStyle(
-                                  color:
-                                      Colors.white), // Text color set to white
+                              style: TextStyle(color: Colors.white),
                             ),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(
-                                  0xFF654E91), // Updated color for Button
+                              backgroundColor: const Color(0xFF654E91),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(20),
                               ),

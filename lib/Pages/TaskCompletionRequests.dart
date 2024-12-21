@@ -29,7 +29,6 @@ class TaskcompletionRequests extends StatelessWidget {
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
-        leading: const Icon(Icons.menu),
       ),
       body: Container(
         color: Colors.purple[50],
@@ -230,16 +229,24 @@ class TaskcompletionRequests extends StatelessWidget {
   // Return Button
   Widget _buildReturnButton(BuildContext context) {
     return Center(
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.pink[100],
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 10),
+      child: SizedBox(
+        width: 500,
+        child: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.black,
+            foregroundColor: Colors.white,
+
+            padding: const EdgeInsets.symmetric(
+                vertical: 10), // Adjust vertical padding if needed
+          ),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          child: const Text(
+            'Return',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          ),
         ),
-        onPressed: () {
-          Navigator.pop(context);
-        },
-        child: const Text('Return'),
       ),
     );
   }

@@ -1,10 +1,13 @@
 import 'package:ems/Pages/AddNewEmployee.dart';
+import 'package:ems/Pages/EmployeeViewer.dart';
+import 'package:ems/Pages/LoginPage.dart'; // Ensure LoginPage is implemented.
+import 'package:ems/Pages/OngoingTasks.dart';
 import 'package:ems/Pages/TaskCompletionRequests.dart';
+import 'package:ems/Pages/TaskManagement.dart';
+import 'package:ems/Pages/reportPage.dart';
 import 'package:flutter/material.dart';
 
 import '../database/LoginFB.dart';
-import 'EmployeeViewer.dart';
-import 'TaskManagement.dart';
 
 class HomePage extends StatefulWidget {
   final String userId;
@@ -32,8 +35,7 @@ class _HomePageState extends State<HomePage> {
       if (userDetails != null) {
         setState(() {
           _userName = userDetails['name'];
-          _userId =
-              userDetails['id'].toString(); // Convert ID to string if necessary
+          _userId = userDetails['id'].toString();
         });
       }
     } catch (e) {
@@ -46,12 +48,8 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        backgroundColor: Color(0xFFB3A4F6), // AppBar color set to #B3A4F6
-        title: Center(child: Text('Home')),
-        leading: IconButton(
-          icon: Icon(Icons.menu),
-          onPressed: () {},
-        ),
+        backgroundColor: const Color(0xFFB3A4F6), // AppBar color set to #B3A4F6
+        title: const Center(child: Text('Home')),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -60,19 +58,19 @@ class _HomePageState extends State<HomePage> {
           children: [
             Container(
               width: double.infinity,
-              padding: EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(16.0),
               decoration: BoxDecoration(
                 color: Colors.black87, // Box with the specified color #2D2D2D
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Row(
                 children: [
-                  CircleAvatar(
+                  const CircleAvatar(
                     radius: 30,
                     backgroundColor: Colors.blue,
                     child: Icon(Icons.person, size: 30, color: Colors.white),
                   ),
-                  SizedBox(width: 16.0),
+                  const SizedBox(width: 16.0),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -80,35 +78,33 @@ class _HomePageState extends State<HomePage> {
                       children: [
                         IntrinsicWidth(
                           child: Container(
-                            padding: EdgeInsets.symmetric(
+                            padding: const EdgeInsets.symmetric(
                                 horizontal: 12.0, vertical: 4.0),
                             decoration: BoxDecoration(
-                              color: Colors
-                                  .grey[600], // Background color #D9D9D97D
+                              color: Colors.grey[600],
                               borderRadius: BorderRadius.circular(20.0),
                             ),
                             child: Text(
                               '${_userName ?? "Loading..."}',
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 18,
                                 color: Colors.white,
                               ),
                             ),
                           ),
                         ),
-                        SizedBox(height: 10),
+                        const SizedBox(height: 10),
                         IntrinsicWidth(
                           child: Container(
-                            padding: EdgeInsets.symmetric(
+                            padding: const EdgeInsets.symmetric(
                                 horizontal: 12.0, vertical: 4.0),
                             decoration: BoxDecoration(
-                              color: Colors
-                                  .grey[600], // Background color #D9D9D97D
+                              color: Colors.grey[600],
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Text(
                               '${_userId ?? "Loading..."}',
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 18,
                                 color: Colors.white,
                               ),
@@ -121,9 +117,9 @@ class _HomePageState extends State<HomePage> {
                 ],
               ),
             ),
-            SizedBox(height: 20.0),
+            const SizedBox(height: 20.0),
             Container(
-              padding: EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(16.0),
               decoration: BoxDecoration(
                 color: Colors.grey, // Box with grey color for the buttons
                 borderRadius: BorderRadius.circular(8.0),
@@ -170,7 +166,21 @@ class _HomePageState extends State<HomePage> {
                       );
                     },
                   ),
-                  _buildButton(context, 'Ongoing Tasks'),
+                  _buildButton(
+                    context,
+                    'Ongoing Tasks',
+                    () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (BuildContext context) {
+                            return OngoingTasks(
+                                userName: _userName ?? "",
+                                userId: _userId ?? "");
+                          },
+                        ),
+                      );
+                    },
+                  ),
                   _buildButton(
                     context,
                     'Task Management',
@@ -186,9 +196,40 @@ class _HomePageState extends State<HomePage> {
                       );
                     },
                   ),
-                  _buildButton(context, 'Reports'),
+                  _buildButton(context, 'Reports', () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (BuildContext context) {
+                          return ReportPage(
+                            userName: '',
+                            userId: '',
+                          );
+                        },
+                      ),
+                    );
+                  }),
                 ],
               ),
+            ),
+            const Spacer(),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF654E91),
+                padding: const EdgeInsets.symmetric(
+                    vertical: 16.0, horizontal: 32.0),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+              ),
+              onPressed: () async {
+                await _authService.signOut(); // Perform sign-out action.
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (context) => LoginPage()),
+                  (route) => false,
+                );
+              },
+              child:
+                  const Text('Logout', style: TextStyle(color: Colors.white)),
             ),
           ],
         ),
@@ -196,8 +237,8 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildButton(BuildContext context, String text,
-      [VoidCallback? onPressed]) {
+  Widget _buildButton(
+      BuildContext context, String text, VoidCallback onPressed) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: SizedBox(
@@ -206,14 +247,14 @@ class _HomePageState extends State<HomePage> {
         child: ElevatedButton(
           style: ElevatedButton.styleFrom(
             backgroundColor:
-                Color(0xFF211B2D), // Color of the buttons set to #211B2D
-            padding: EdgeInsets.symmetric(vertical: 16.0),
+                const Color(0xFF211B2D), // Button color set to #211B2D
+            padding: const EdgeInsets.symmetric(vertical: 16.0),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8.0),
             ),
           ),
           onPressed: onPressed,
-          child: Text(text, style: TextStyle(color: Colors.white)),
+          child: Text(text, style: const TextStyle(color: Colors.white)),
         ),
       ),
     );

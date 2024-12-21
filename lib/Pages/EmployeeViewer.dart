@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class EmployeeViewer extends StatefulWidget {
@@ -12,10 +13,110 @@ class EmployeeViewer extends StatefulWidget {
 }
 
 class _EmployeeViewerState extends State<EmployeeViewer> {
+  final TextEditingController _searchController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _idController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _genderController = TextEditingController();
+  final TextEditingController _birthdateController = TextEditingController();
+  final TextEditingController _salaryController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _ssnController = TextEditingController();
+  final TextEditingController _managerController = TextEditingController();
+
+  List<Map<String, dynamic>> _filteredEmployees = [];
+  bool _isDropdownVisible = false;
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchManagerData(); // Fetch manager data when the widget is initialized
+  }
+
+  Future<void> _fetchManagerData() async {
+    try {
+      final managerDoc = await FirebaseFirestore.instance
+          .collection(
+              'managers') // Replace with your actual managers collection
+          .doc(widget.userId) // Use the userId to fetch manager data
+          .get();
+
+      if (managerDoc.exists) {
+        setState(() {
+          _managerController.text = managerDoc['name'] ?? 'Manager Not Found';
+        });
+      } else {
+        _managerController.text = 'Manager Not Found';
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error fetching manager: ${e.toString()}')),
+      );
+    }
+  }
+
+  void _filterEmployees(String query) async {
+    if (query.isEmpty) {
+      setState(() {
+        _isDropdownVisible = false;
+        _filteredEmployees = [];
+      });
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final nameSnapshot = await FirebaseFirestore.instance
+          .collection('employees')
+          .where('name', isGreaterThanOrEqualTo: query)
+          .where('name', isLessThanOrEqualTo: query + '\uf8ff')
+          .get();
+
+      final idSnapshot = await FirebaseFirestore.instance
+          .collection('employees')
+          .where('id', isEqualTo: query)
+          .get();
+
+      setState(() {
+        _filteredEmployees = [
+          ...nameSnapshot.docs.map((doc) => {'id': doc.id, ...doc.data()}),
+          ...idSnapshot.docs.map((doc) => {'id': doc.id, ...doc.data()}),
+        ];
+        _isDropdownVisible = _filteredEmployees.isNotEmpty;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isDropdownVisible = false;
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ${e.toString()}')),
+      );
+    }
+  }
+
+  void _selectEmployee(Map<String, dynamic> employee) {
+    setState(() {
+      _nameController.text = employee['name'] ?? '';
+      _idController.text = employee['id'] ?? '';
+      _phoneController.text = employee['phone'] ?? '';
+      _genderController.text = employee['gender'] ?? '';
+      _birthdateController.text = employee['birthDate'] ?? '';
+      _salaryController.text = employee['salary'] ?? '';
+      _emailController.text = employee['email'] ?? '';
+      _ssnController.text = employee['ssn'] ?? '';
+      _managerController.text = employee['manager'] ?? '';
+      _isDropdownVisible = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFF3EAFD), // Background color
+      backgroundColor: Color(0xFFF3EAFD),
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: Color(0xFFB3A4F6),
@@ -28,7 +129,6 @@ class _EmployeeViewerState extends State<EmployeeViewer> {
           ),
         ),
         centerTitle: true,
-        leading: Icon(Icons.menu, color: Colors.black),
         elevation: 0,
       ),
       body: SingleChildScrollView(
@@ -37,27 +137,20 @@ class _EmployeeViewerState extends State<EmployeeViewer> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Profile Section
               _buildProfileSection(),
-
               SizedBox(height: 16),
-
-              // Search Section
               _buildSearchSection(),
-
+              if (_isDropdownVisible) _buildDropdownList(),
               SizedBox(height: 16),
-
-              // Info Fields
-              _buildInfoSection("Department"),
-              _buildInfoSection("Job satisfaction"),
-              _buildInfoSection("Performance"),
-              _buildInfoSection("Current Task"),
-              _buildInfoSection("ID"),
-              _buildInfoSection("Team ID"),
-
+              _buildTextField('Name', _nameController, true),
+              _buildTextField('ID', _idController, true),
+              _buildTextField('Phone', _phoneController, true),
+              _buildTextField('Gender', _genderController, true),
+              _buildTextField('Birthdate', _birthdateController, true),
+              _buildTextField('Salary', _salaryController, true),
+              _buildTextField('Email', _emailController, true),
+              _buildTextField('SSN', _ssnController, true),
               SizedBox(height: 20),
-
-              // Return Button
               _buildReturnButton(),
             ],
           ),
@@ -66,7 +159,6 @@ class _EmployeeViewerState extends State<EmployeeViewer> {
     );
   }
 
-  // Profile Section
   Widget _buildProfileSection() {
     return Container(
       padding: EdgeInsets.all(16.0),
@@ -95,7 +187,6 @@ class _EmployeeViewerState extends State<EmployeeViewer> {
     );
   }
 
-  // Small chip-like container for user details
   Widget _buildChip(String text, Color backgroundColor) {
     return IntrinsicWidth(
       child: Container(
@@ -115,7 +206,6 @@ class _EmployeeViewerState extends State<EmployeeViewer> {
     );
   }
 
-  // Search Section
   Widget _buildSearchSection() {
     return Container(
       padding: EdgeInsets.all(16.0),
@@ -125,32 +215,19 @@ class _EmployeeViewerState extends State<EmployeeViewer> {
       ),
       child: Row(
         children: [
-          Text(
-            "Employee ID",
-            style: TextStyle(color: Colors.white, fontSize: 16),
-          ),
-          SizedBox(width: 8.0),
           Expanded(
-            child: Container(
-              height: 40,
-              decoration: BoxDecoration(
-                color: Colors.grey[400],
-                borderRadius: BorderRadius.circular(8.0),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Search by Name or ID',
+                hintStyle: TextStyle(color: Colors.grey),
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
               ),
-            ),
-          ),
-          SizedBox(width: 8.0),
-          ElevatedButton(
-            onPressed: () {},
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Color(0xFFF0C1C1),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8.0),
-              ),
-            ),
-            child: Text(
-              "Search",
-              style: TextStyle(color: Colors.black),
+              onChanged: _filterEmployees,
             ),
           ),
         ],
@@ -158,61 +235,66 @@ class _EmployeeViewerState extends State<EmployeeViewer> {
     );
   }
 
-  // Info Section for Labels and Fields
-  Widget _buildInfoSection(String label) {
+  Widget _buildDropdownList() {
+    return Container(
+      height: 150,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      child: ListView.builder(
+        padding: EdgeInsets.all(10),
+        itemCount: _filteredEmployees.length,
+        itemBuilder: (context, index) {
+          final employee = _filteredEmployees[index];
+          return ListTile(
+            title: Text(
+              "${employee['id']} - ${employee['name']}",
+              style: TextStyle(color: Colors.black),
+            ),
+            onTap: () => _selectEmployee(employee),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildTextField(
+      String label, TextEditingController controller, bool readOnly) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12.0),
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
-        decoration: BoxDecoration(
-          color: Color(0xFFE6E6E6), // Light gray background
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: TextStyle(
-                color: Colors.teal[700],
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            SizedBox(height: 8.0),
-            Container(
-              width: double.infinity, // Full screen width
-              height: 50, // Larger height for the info box
-              decoration: BoxDecoration(
-                color: Colors.black87,
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-          ],
+      child: TextField(
+        controller: controller,
+        readOnly: readOnly,
+        decoration: InputDecoration(
+          labelText: label,
+          filled: true,
+          fillColor: Colors.white,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8.0),
+          ),
         ),
       ),
     );
   }
 
-  // Return Button
   Widget _buildReturnButton() {
-    return ElevatedButton(
-      onPressed: () {
-        Navigator.of(context).pop();
-      },
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Color(0xFFF0C1C1),
-        padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 24.0),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8.0),
-        ),
-      ),
-      child: Text(
-        "Return",
-        style: TextStyle(
-          fontSize: 18,
-          color: Colors.black,
-          fontWeight: FontWeight.bold,
+    return Center(
+      child: SizedBox(
+        width: 500,
+        child: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.black,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 10),
+          ),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          child: const Text(
+            'Return',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          ),
         ),
       ),
     );

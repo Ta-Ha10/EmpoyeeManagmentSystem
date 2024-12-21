@@ -1,14 +1,20 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:ems/Pages/HomePage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-class AddNewEmployee extends StatelessWidget {
+class AddNewEmployee extends StatefulWidget {
   final String userName;
   final String userId;
 
   const AddNewEmployee({Key? key, required this.userName, required this.userId})
       : super(key: key);
 
+  @override
+  State<AddNewEmployee> createState() => _AddNewEmployeeState();
+}
+
+class _AddNewEmployeeState extends State<AddNewEmployee> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -17,7 +23,8 @@ class AddNewEmployee extends StatelessWidget {
         primarySwatch: Colors.deepPurple,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: EmployeeRegistrationForm(userName: userName, userId: userId),
+      home: EmployeeRegistrationForm(
+          userName: widget.userName, userId: widget.userId),
     );
   }
 }
@@ -105,6 +112,7 @@ class _EmployeeRegistrationFormState extends State<EmployeeRegistrationForm> {
           'email': _emailController.text,
           'ssn': _ssnController.text,
           'userId': userCredential.user!.uid,
+          'Manager': {widget.userName}
         });
 
         // Show success message
@@ -131,7 +139,7 @@ class _EmployeeRegistrationFormState extends State<EmployeeRegistrationForm> {
       backgroundColor: const Color(0xFFF3EAFD),
       appBar: AppBar(
         title: Center(child: Text('Employee Registration')),
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: Color(0xFFB3A4F6), // AppBar color set to #B3A4F6
       ),
       body: SingleChildScrollView(
         child: Center(
@@ -163,28 +171,60 @@ class _EmployeeRegistrationFormState extends State<EmployeeRegistrationForm> {
                   _buildTextField('SSN', controller: _ssnController),
                   SizedBox(height: 20),
                   Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      ElevatedButton(
-                        onPressed: _registerEmployee,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.deepPurple,
-                          minimumSize: Size(double.infinity, 50),
+                      Center(
+                        child: SizedBox(
+                          width: 500, // Width for the first button
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Color(0xFFF0C1C1),
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                            ),
+                            onPressed: _registerEmployee,
+                            child: const Text(
+                              'Submit',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                              ),
+                            ),
+                          ),
                         ),
-                        child: Text('Submit'),
                       ),
-                      SizedBox(height: 10),
-                      ElevatedButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.redAccent,
-                          minimumSize: Size(double.infinity, 50),
+                      const SizedBox(
+                          height: 20), // Spacing between the two buttons
+                      Center(
+                        child: SizedBox(
+                          width: 500,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.black,
+                              foregroundColor: Colors.white,
+
+                              padding: const EdgeInsets.symmetric(
+                                  vertical:
+                                      10), // Adjust vertical padding if needed
+                            ),
+                            onPressed: () {
+                              Navigator.of(context).pushReplacement(
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      HomePage(userId: widget.userId),
+                                ),
+                              );
+                            },
+                            child: const Text(
+                              'Return',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 18),
+                            ),
+                          ),
                         ),
-                        child: Text('Return'),
                       ),
                     ],
-                  ),
+                  )
                 ],
               ),
             ),

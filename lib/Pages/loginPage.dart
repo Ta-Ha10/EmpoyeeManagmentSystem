@@ -16,6 +16,7 @@ class _LoginPageState extends State<LoginPage> {
   final FirebaseAuthService _authService = FirebaseAuthService();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  bool _isPasswordVisible = false;
   String? _errorMessage;
 
   @override
@@ -33,11 +34,9 @@ class _LoginPageState extends State<LoginPage> {
       User? user =
           await _authService.signInWithEmailAndPassword(email, password);
       if (user != null) {
-        // Login successful
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Login successful!')),
         );
-        // Navigate to Home Page or another page, passing user ID
         Navigator.of(context).pushReplacement(MaterialPageRoute(
           builder: (context) => HomePage(userId: user.uid),
         ));
@@ -58,9 +57,10 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-          backgroundColor: const Color(0xFFB3A4F6),
-          automaticallyImplyLeading: false,
-          title: Center(child: Text('Login'))),
+        backgroundColor: const Color(0xFFB3A4F6),
+        automaticallyImplyLeading: false,
+        title: Center(child: Text('Login')),
+      ),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -73,7 +73,6 @@ class _LoginPageState extends State<LoginPage> {
                   style: TextStyle(color: Colors.red),
                 ),
               const SizedBox(height: 20),
-              // Profile Icon
               const CircleAvatar(
                 radius: 50,
                 backgroundColor: Colors.blueAccent,
@@ -84,7 +83,6 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
               const SizedBox(height: 30),
-              // Login Form Section
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 20),
                 padding: const EdgeInsets.all(20),
@@ -94,7 +92,6 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 child: Column(
                   children: [
-                    // Email Field
                     Row(
                       children: const [
                         Text(
@@ -110,22 +107,19 @@ class _LoginPageState extends State<LoginPage> {
                     const SizedBox(height: 8),
                     Container(
                       decoration: BoxDecoration(
-                        color: const Color(
-                            0xFF7E96D3), // Color for TextField background
-                        borderRadius:
-                            BorderRadius.circular(20), // Full rounded corners
+                        color: const Color(0xFF7E96D3),
+                        borderRadius: BorderRadius.circular(20),
                       ),
                       child: TextField(
-                        controller: _emailController, // Set controller
+                        controller: _emailController,
                         decoration: const InputDecoration(
                           contentPadding: EdgeInsets.symmetric(
                               horizontal: 20, vertical: 10),
-                          border: InputBorder.none, // Remove border
+                          border: InputBorder.none,
                         ),
                       ),
                     ),
                     const SizedBox(height: 20),
-                    // Password Field
                     Row(
                       children: const [
                         Text(
@@ -141,27 +135,35 @@ class _LoginPageState extends State<LoginPage> {
                     const SizedBox(height: 8),
                     Container(
                       decoration: BoxDecoration(
-                        color: const Color(
-                            0xFF7E96D3), // Color for TextField background
-                        borderRadius:
-                            BorderRadius.circular(20), // Full rounded corners
+                        color: const Color(0xFF7E96D3),
+                        borderRadius: BorderRadius.circular(20),
                       ),
                       child: TextField(
-                        controller: _passwordController, // Set controller
-                        obscureText: true,
-                        decoration: const InputDecoration(
-                          contentPadding: EdgeInsets.symmetric(
+                        controller: _passwordController,
+                        obscureText: !_isPasswordVisible,
+                        decoration: InputDecoration(
+                          contentPadding: const EdgeInsets.symmetric(
                               horizontal: 20, vertical: 10),
-                          border: InputBorder.none, // Remove border
+                          border: InputBorder.none,
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _isPasswordVisible
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _isPasswordVisible = !_isPasswordVisible;
+                              });
+                            },
+                          ),
                         ),
                       ),
                     ),
                     const SizedBox(height: 20),
-                    // Login Button
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(
-                            0xFF7E96D3), // Color for Button background
+                        backgroundColor: const Color(0xFF7E96D3),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20),
                         ),
@@ -174,11 +176,9 @@ class _LoginPageState extends State<LoginPage> {
                       child: const Text('Login'),
                     ),
                     const SizedBox(height: 10),
-                    // Sign Up Button
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(
-                            0xFF7E96D3), // Color for Button background
+                        backgroundColor: const Color(0xFF7E96D3),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20),
                         ),
@@ -188,7 +188,6 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                       onPressed: () {
-                        // Navigate to Sign Up Page (assuming you have a SignUpPage)
                         Navigator.of(context).push(
                             MaterialPageRoute(builder: (context) => SignUp()));
                       },

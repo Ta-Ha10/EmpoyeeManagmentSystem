@@ -99,13 +99,14 @@ class _TaskManagementState extends State<TaskManagement> {
     }
 
     try {
-      // Save task to Firestore
+      // Save task to Firestore with the new "status" attribute
       await FirebaseFirestore.instance.collection('tasks').add({
         'employeeDetails': employeeDetails,
         'taskTitle': taskTitle,
         'taskDescription': taskDescription,
         'startDate': startDate,
         'endDate': endDate,
+        'status': 'pending', // Add the new attribute here
         'createdBy': {
           'userName': widget.userName,
           'userId': widget.userId,
@@ -377,7 +378,7 @@ class _TaskManagementState extends State<TaskManagement> {
               // Submit Button
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFBBE0A5),
+                  backgroundColor: Color(0xFFF0C1C1),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
                   ),
@@ -385,6 +386,24 @@ class _TaskManagementState extends State<TaskManagement> {
                 onPressed: addTask,
                 child: const Text(
                   "Submit",
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold),
+                ),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.black87,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: const Text(
+                  "Return",
                   style: TextStyle(
                       color: Colors.white,
                       fontSize: 16,
